@@ -1,5 +1,4 @@
-﻿/MyML_Lib.csproj
-# Common IntelliJ Platform excludes
+﻿# Common IntelliJ Platform excludes
 
 # User specific
 **/.idea/**/workspace.xml
