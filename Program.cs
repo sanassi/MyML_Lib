@@ -108,24 +108,38 @@ namespace MyML_Lib
 
         static void Main(string[] args)
         {
-            List<Image> trainingData = MnistReader.ReadTrainingData(2000).ToList();
-            List<Image> validSet = trainingData.GetRange(1000, 1000);
+            List<Image> trainingData = MnistReader.ReadTrainingData(10000).ToList();
+            List<Image> validSet = trainingData.GetRange(9000, 1000);
             List<Image> testData = MnistReader.ReadTestData(10000).ToList();
             
-            /*
-            Network net = new Network(784, 50, 10);
             
+            Network net = new Network(784, 50, 10)
+            {
+                eta = 0.05
+            };
+
+            List<double> dataX = new List<double>();
+            List<double> dataY = new List<double>();
+
             for (int epoch = 0; epoch < 50; epoch++)
             {
                 for (int i = 0; i < 1000; i++)
                 {
-                    net.eta = 0.4;
-                    net.Train(VectorizeImage(trainingData[i]), GetTargetVector(10, trainingData[i].Label), 0.4);
+                    net.Train(VectorizeImage(trainingData[i]), GetTargetVector(10, trainingData[i].Label), 0.05);
                 }
-                Console.WriteLine(GetValidationError(net, validSet));
-            }
-            */
 
+                /*
+                if (epoch % 10 == 0)
+                {
+                    dataX.Add(epoch);
+                    dataY.Add(GetValidationError(net, validSet));
+                    var plt = new ScottPlot.Plot(400, 300);
+                    plt.AddScatter(dataX.ToArray(), dataY.ToArray());
+                    new ScottPlot.FormsPlotViewer(plt).ShowDialog();
+                }
+                */
+            }
+            net.Save("networkData/");
             /*
             Network net = new Network("networkData/");
             for (int i = 0; i < 27; i++)
@@ -144,8 +158,6 @@ namespace MyML_Lib
             
             //img.Save("gray.png");
             */
-            
-            
 
             /*
             double accuracy = 0;
@@ -165,6 +177,13 @@ namespace MyML_Lib
             Console.WriteLine(accuracy);
             
             net.Save("networkData/");
+            */
+            /*
+            double[] dataX = new double[] { 1, 2, 3, 4, 5};
+            double[] dataY = new double[] { 1, 4, 9, 16, 25 };
+            var plt = new ScottPlot.Plot(400, 300);
+            plt.AddScatter(dataX, dataY);
+            new ScottPlot.FormsPlotViewer(plt).ShowDialog();
             */
         }
     }
