@@ -21,7 +21,7 @@ namespace MyML_Lib
                     else
                     {
                         Console.ForegroundColor = ConsoleColor.Red;
-                        Console.Write(1);
+                        Console.Write("1");
                         Console.ResetColor();
                     }
                 }

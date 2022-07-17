@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Mime;
 using System.Drawing;
+using static MyML_Lib.ShapeDetector;
 
 namespace MyML_Lib
 {
@@ -101,18 +102,102 @@ namespace MyML_Lib
                 net.FeedForward(VectorizeImage(x));
                 double y = Matrix<double>.ArgMax(net.output).Item1;
                 cost += (x.Label - y) * (x.Label - y);
+                
+                /*//
+                net.FeedForward(VectorizeImage(x));
+
+                Matrix<double> sub = GetTargetVector(net.sizeOutput, x.Label) - net.output;
+                Matrix<double> sq = sub ^ sub;
+                cost += Matrix<double>.Sum(sq);
+                */
             }
             
             return cost / validSet.Count;
         }
 
+
+        public static void Train(List<Image> trainingData, List<Image> validationData, double eta)
+        {
+            Network net = new Network(784, 50, 3)
+            {
+                eta = eta
+            };
+
+            double minError = Double.MaxValue;
+
+            /*list to store results and then plot error*/
+            List<double> dataX = new List<double>();
+            List<double> dataY = new List<double>();
+
+            for (int epoch = 0; epoch < 50; epoch++)
+            {
+                for (int i = 0; i < trainingData.Count; i++)
+                {
+                    net.Train(VectorizeImage(trainingData[i]), GetTargetVector(3, trainingData[i].Label), eta);
+                }
+                
+                
+                if (epoch % 10 == 0)
+                {
+                    dataX.Add(epoch);
+                    double validationError = GetValidationError(net, validationData);
+                    dataY.Add(validationError);
+                    var plt = new ScottPlot.Plot(400, 300);
+                    plt.AddScatter(dataX.ToArray(), dataY.ToArray());
+                    new ScottPlot.FormsPlotViewer(plt).ShowDialog();
+
+                    /*early exit*/
+                    if (validationError < minError)
+                    {
+                        minError = validationError;
+                        net.Save("networkData2/");
+                    }
+                }
+            }
+            //net.Save("networkData2/");
+        }
+
+        public static void TestNetwork(Network net, List<Image> data)
+        {
+            foreach (var x in data)
+            {
+                net.FeedForward(VectorizeImage(x));
+                int prediction = Matrix<double>.ArgMax(net.output).Item1;
+                int expected = x.Label;
+
+                if (prediction == expected)
+                {
+                    Console.Write($"expected : {expected}  ");
+                    Console.ForegroundColor = ConsoleColor.Blue;
+                    Console.WriteLine($"got : {prediction}");
+                    Console.ResetColor();
+                }
+                else
+                {
+                    Console.Write($"expected : {expected}  ");
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine($"got : {prediction}");
+                    Console.ResetColor();
+                }
+            }
+        }
+        
         static void Main(string[] args)
         {
+            /*
             List<Image> trainingData = MnistReader.ReadTrainingData(10000).ToList();
             List<Image> validSet = trainingData.GetRange(9000, 1000);
-            List<Image> testData = MnistReader.ReadTestData(10000).ToList();
-            
-            
+            List<Image> testData = MnistReader.ReadTestData(100).ToList();
+
+            Network net = new Network("NetworkData/");
+
+            foreach (var x in testData)
+            {
+                net.FeedForward(VectorizeImage(x));
+                Console.WriteLine($"Got : {Matrix<double>.ArgMax(net.output)}, Expected : {x.Label}");
+            }
+            */
+            /*
             Network net = new Network(784, 50, 10)
             {
                 eta = 0.05
@@ -127,8 +212,8 @@ namespace MyML_Lib
                 {
                     net.Train(VectorizeImage(trainingData[i]), GetTargetVector(10, trainingData[i].Label), 0.05);
                 }
-
-                /*
+                
+                
                 if (epoch % 10 == 0)
                 {
                     dataX.Add(epoch);
@@ -137,9 +222,10 @@ namespace MyML_Lib
                     plt.AddScatter(dataX.ToArray(), dataY.ToArray());
                     new ScottPlot.FormsPlotViewer(plt).ShowDialog();
                 }
-                */
+                
             }
             net.Save("networkData/");
+            */
             /*
             Network net = new Network("networkData/");
             for (int i = 0; i < 27; i++)
@@ -158,7 +244,6 @@ namespace MyML_Lib
             
             //img.Save("gray.png");
             */
-
             /*
             double accuracy = 0;
             for (int i = 0; i < 1000; i++)
@@ -184,6 +269,31 @@ namespace MyML_Lib
             var plt = new ScottPlot.Plot(400, 300);
             plt.AddScatter(dataX, dataY);
             new ScottPlot.FormsPlotViewer(plt).ShowDialog();
+            */
+
+            /*
+            Bitmap img = new Bitmap("shapes/circle/drawing(1).png");
+            //Grayscale(img);
+            img.Save("test.png");
+            Image byteImg = ShapeDetector.ConvertToByteImage(img, ShapeDetector.Shape.Circle);
+
+            byteImg.Print();
+            */
+            
+            
+            List<Image> trainingData = ShapeDetector.ReadTrainingData();
+            List<Image> testData = ShapeDetector.ReadTestData();
+            List<Image> validationData = ShapeDetector.ReadValidationData();
+            
+            //Train(trainingData, validationData, 0.5);
+            TestNetwork(new Network("networkData2/"), trainingData);
+
+            /*
+            foreach (var img in validationData)
+            {
+                Console.WriteLine((Shape) img.Label);
+                img.Print();
+            }
             */
         }
     }
